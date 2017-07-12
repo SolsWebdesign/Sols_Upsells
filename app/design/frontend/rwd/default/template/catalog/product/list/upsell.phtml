@@ -59,15 +59,8 @@
                 <div style="margin: 10px 0 10px 0">
                     <?php echo $this->__('Qty:') ?> <input type="text" class="input-text qty" pattern="\d*(\.\d+)?" name="qty" maxlength="12" value="1">
                 </div>
-                <input type="submit" value="In winkelwagen" />
+                <input type="submit" value="<?php $this->__('Add to Cart'); ?>" />
                 </form>
-                <?php
-//                $attributeOptions = array();
-//                foreach ($productAttributeOptions as $productAttribute) {
-//                foreach ($productAttribute['values'] as $attribute) {
-//                $attributeOptions[$productAttribute['label']][$attribute['value_index']] = $attribute['store_label'];
-//                }
-//                } ?>
             <?php endif; ?>
             <?php echo $this->getPriceHtml($_link, true, '-upsell') ?>
             <?php echo $this->getReviewsSummaryHtml($_link) ?>
