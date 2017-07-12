@@ -1,0 +1,11 @@
+{
+  "name": "solls/upsells",
+  "type": "magento-module",
+  "homepage": "https://github.com/SolsWebdesign/Sols_Upsells",
+  "description": "Upsells with configurable options that can be added to the cart",
+  "authors": [
+    {
+      "name": "Isolde"
+    }
+  ]
+}
