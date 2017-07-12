@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @category   Sols
+ * @package    Sols_Upsells
+ */
+ -->
+<config>
+    <modules>
+        <Sols_Upsells>
+            <active>true</active>
+            <codePool>local</codePool>
+        </Sols_Upsells>
+    </modules>
+</config> 
