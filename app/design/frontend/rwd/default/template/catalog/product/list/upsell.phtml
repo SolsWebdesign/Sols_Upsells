@@ -59,7 +59,7 @@
                 <div style="margin: 10px 0 10px 0">
                     <?php echo $this->__('Qty:') ?> <input type="text" class="input-text qty" pattern="\d*(\.\d+)?" name="qty" maxlength="12" value="1">
                 </div>
-                <input type="submit" value="<?php $this->__('Add to Cart'); ?>" />
+                <input type="submit" value="<?php echo $this->__('Add to Cart'); ?>" />
                 </form>
             <?php endif; ?>
             <?php echo $this->getPriceHtml($_link, true, '-upsell') ?>
