@@ -50,7 +50,7 @@
                         <?php echo $productAttribute['label']; ?>:
                         <select id="attribute<?php echo $productAttribute['attribute_code']; ?>" class="required-entry super-attribute-select" name="super_attribute[<?php echo $productAttribute['attribute_id']; ?>]">
                             <?php foreach ($productAttribute['values'] as $attribute): ?>
-                                <option value="<?php echo $attribute['value_index']; ?>"><?php echo $attribute['store_label']; ?>&nbsp</option>
+                                <option value="<?php echo $attribute['value_index']; ?>"><?php echo $attribute['store_label']; ?>&nbsp;</option>
                             <?php endforeach; ?>
                         </select>
                     <?php endforeach; ?>
