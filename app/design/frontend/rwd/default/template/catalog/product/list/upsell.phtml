@@ -41,27 +41,27 @@
                 <img src="<?php echo $this->helper('catalog/image')->init($_link, 'small_image')->resize(280) ?>" alt="<?php echo $this->escapeHtml($_link->getName()) ?>" />
             </a>
             <h3 class="product-name"><a href="<?php echo $_link->getProductUrl() ?>" title="<?php echo $this->escapeHtml($_link->getName()) ?>"><?php echo $this->escapeHtml($_link->getName()) ?></a></h3>
-            <?php if($_link->getTypeId() == 'configurable'): ?>
-                <?php    $prodAttrOptions = $_link->getTypeInstance(true)->getConfigurableAttributesAsArray($_link); ?>
                 <form  action="<?php echo $this->getUrl('upsells/cart/addto') ?>" id="product_addtocart_product-<?php echo $_link->getId(); ?>" method="POST">
                     <input type="hidden" name="form_key" value="<?php echo Mage::getSingleton('core/session')->getFormKey(); ?>" />
                     <input type="hidden" name="product" value="<?php echo $_link->getId(); ?>" />
-                    <?php foreach ($prodAttrOptions as $productAttribute): ?>
-                        <?php echo $productAttribute['label']; ?>:
-                        <select id="attribute<?php echo $productAttribute['attribute_code']; ?>" class="required-entry super-attribute-select" name="super_attribute[<?php echo $productAttribute['attribute_id']; ?>]">
-                            <?php foreach ($productAttribute['values'] as $attribute): ?>
-                                <option value="<?php echo $attribute['value_index']; ?>"><?php echo $attribute['store_label']; ?>&nbsp</option>
-                            <?php endforeach; ?>
-                        </select>
-                    <?php endforeach; ?>
-                <br />
+                    <?php if($_link->getTypeId() == 'configurable'): ?>
+                        <?php    $prodAttrOptions = $_link->getTypeInstance(true)->getConfigurableAttributesAsArray($_link); ?>
+                        <?php foreach ($prodAttrOptions as $productAttribute): ?>
+                            <?php echo $productAttribute['label']; ?>:
+                            <select id="attribute<?php echo $productAttribute['attribute_code']; ?>" class="required-entry super-attribute-select" name="super_attribute[<?php echo $productAttribute['attribute_id']; ?>]">
+                                <?php foreach ($productAttribute['values'] as $attribute): ?>
+                                    <option value="<?php echo $attribute['value_index']; ?>"><?php echo $attribute['store_label']; ?>&nbsp</option>
+                                <?php endforeach; ?>
+                            </select>
+                        <?php endforeach; ?>
+                        <br />
+                    <?php endif; ?>
                 <br />
                 <div style="margin: 10px 0 10px 0">
                     <?php echo $this->__('Qty:') ?> <input type="text" class="input-text qty" pattern="\d*(\.\d+)?" name="qty" maxlength="12" value="1">
                 </div>
                 <input type="submit" value="<?php $this->__('Add to Cart'); ?>" />
                 </form>
-            <?php endif; ?>
             <?php echo $this->getPriceHtml($_link, true, '-upsell') ?>
             <?php echo $this->getReviewsSummaryHtml($_link) ?>
         </li>
