@@ -32,6 +32,7 @@
     <?php // $this->setColumnCount(5); // uncomment this line if you want to have another number of columns. also can be changed in layout ?>
     <?php $this->resetItemsIterator() ?>
     <?php foreach ($this->getItemCollection()->getItems() as $_link): ?>
+        <?php $stockItem = $_link->getStockItem(); ?>
     <?php /*for($_i=0;$_i<$this->getRowCount();$_i++): ?>
         <tr>
         <?php for($_j=0;$_j<$this->getColumnCount();$_j++): ?>
@@ -41,27 +42,126 @@
                 <img src="<?php echo $this->helper('catalog/image')->init($_link, 'small_image')->resize(280) ?>" alt="<?php echo $this->escapeHtml($_link->getName()) ?>" />
             </a>
             <h3 class="product-name"><a href="<?php echo $_link->getProductUrl() ?>" title="<?php echo $this->escapeHtml($_link->getName()) ?>"><?php echo $this->escapeHtml($_link->getName()) ?></a></h3>
-                <form  action="<?php echo $this->getUrl('upsells/cart/addto') ?>" id="product_addtocart_product-<?php echo $_link->getId(); ?>" method="POST">
-                    <input type="hidden" name="form_key" value="<?php echo Mage::getSingleton('core/session')->getFormKey(); ?>" />
-                    <input type="hidden" name="product" value="<?php echo $_link->getId(); ?>" />
-                    <?php if($_link->getTypeId() == 'configurable'): ?>
-                        <?php    $prodAttrOptions = $_link->getTypeInstance(true)->getConfigurableAttributesAsArray($_link); ?>
-                        <?php foreach ($prodAttrOptions as $productAttribute): ?>
-                            <?php echo $productAttribute['label']; ?>:
-                            <select id="attribute<?php echo $productAttribute['attribute_code']; ?>" class="required-entry super-attribute-select" name="super_attribute[<?php echo $productAttribute['attribute_id']; ?>]">
+            <form  action="<?php echo $this->getUrl('upsells/cart/addto') ?>" id="product_addtocart_product-<?php echo $_link->getId(); ?>" method="POST">
+                <input type="hidden" name="form_key" value="<?php echo Mage::getSingleton('core/session')->getFormKey(); ?>" />
+                <input type="hidden" name="product" value="<?php echo $_link->getId(); ?>" />
+                <?php if($_link->getTypeId() == 'configurable'): ?>
+                    <?php $result = Mage::helper('upsells')->getMyConfigurableAttributesAsArray($_link); ?>
+                    <?php $prodAttrOptions = $result['config_atts']; ?>
+                    <?php $first = true; ?>
+                    <?php $firstAttId = false; ?>
+                    <?php $countSelects = count($prodAttrOptions); ?>
+                    <?php foreach ($prodAttrOptions as $productAttribute): ?>
+                        <?php $stock = true; ?>
+                        <?php $attId = $productAttribute['attribute_id']; ?>
+                        <div>
+                            <label for="attribute<?php echo $productAttribute['attribute_code']; ?>"><?php echo $productAttribute['label']; ?>:</label>
+                            <select style="max-width:100%;" class="required-entry super-attribute-select<?php if($first): ?><?php $firstAttId = $productAttribute['attribute_id']; ?> first<?php endif; ?>" <?php if($first): ?><?php $first = false; ?><?php else: ?>disabled="disabled" <?php endif; ?>id="attribute<?php echo $productAttribute['attribute_code']; ?>" name="super_attribute[<?php echo $productAttribute['attribute_id']; ?>]" data-attributeid="<?php echo $productAttribute['attribute_id']; ?>">
+                                <option value=""><?php echo $this->__('Choose an Option...'); ?></option>
                                 <?php foreach ($productAttribute['values'] as $attribute): ?>
-                                    <option value="<?php echo $attribute['value_index']; ?>"><?php echo $attribute['store_label']; ?>&nbsp;</option>
+                                    <option <?php if($countSelects == 1 && $result['config_stock'][$attId.'-'.$attribute['value_index']]['custom_status']): ?>stock="none" <?php endif; ?> data-org="<?php echo $attribute['store_label']; ?>" value="<?php echo $attribute['value_index']; ?>"><?php echo $attribute['store_label']; ?>&nbsp<?php if($countSelects == 1 && $result['config_stock'][$attId.'-'.$attribute['value_index']]['custom_status']): ?><?php echo $result['config_stock'][$attId.'-'.$attribute['value_index']]['custom_status']; ?><?php endif; ?></option>
                                 <?php endforeach; ?>
                             </select>
+                        </div>
+                    <?php endforeach; ?>
+                    <?php if($countSelects > 1): ?>
+                        <?php $defaultOutOfStock = ''; ?>
+                        <?php foreach($result['config_stock'] as $key => $value): ?>
+                            <?php if($value['custom_status'] != ''){ $defaultOutOfStock = $value['custom_status'];} ?>
+                            <input type="hidden" class="stock" data-id="<?php echo $key; ?>" data-stock="<?php echo $value['is_in_stock']; ?>" data-status="<?php echo $value['custom_status']; ?>" />
                         <?php endforeach; ?>
-                        <br />
+                        <script type="text/javascript">
+                            //< ![CDATA[
+                            <?php if($firstAttId): ?>
+                            var check<?php echo $firstAttId; ?> = {};
+                            <?php endif; ?>
+                            <?php foreach($result['config_stock'] as $key => $value): ?>
+                                <?php $valueId = str_replace($firstAttId.'-','',$key); ?>
+                                <?php $valueId = substr($valueId, 0, strpos($valueId, "/")); ?>
+                                check<?php echo $firstAttId; ?>['<?php echo $valueId; ?>'] = false;
+                            <?php endforeach; ?>
+                            <?php foreach($result['config_stock'] as $key => $value): ?>
+                                <?php $valueId = str_replace($firstAttId.'-','',$key); ?>
+                                <?php $valueId = substr($valueId, 0, strpos($valueId, "/")); ?>
+                                <?php if($value['is_in_stock']): ?>
+                                    check<?php echo $firstAttId; ?>['<?php echo $valueId; ?>'] = true;
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                            for (var key in check<?php echo $firstAttId; ?>) {
+                                if(!check<?php echo $firstAttId; ?>[key]){
+                                    var element = jQuery("#product_addtocart_product-<?php echo $_link->getId();?> .super-attribute-select[data-attributeid='<?php echo $firstAttId; ?>']  option[value='"+key+"']");
+                                    element.text(element.data('org')+ ' <?php echo $defaultOutOfStock; ?>');
+                                }
+                            }
+                            jQuery('#product_addtocart_product-<?php echo $_link->getId();?> .super-attribute-select.first').change(function(){
+                                jQuery('#product_addtocart_product-<?php echo $_link->getId();?> .super-attribute-select option').each(function(){
+                                    jQuery(this).text(jQuery(this).data('org'));
+                                    jQuery(this).removeAttr('stock');
+                                });
+                                jQuery("#product_addtocart_product-<?php echo $_link->getId();?> .super-attribute-select").prop("disabled", false);
+                                var attributeId = jQuery(this).data('attributeid');
+                                var chosenValue = jQuery(this).val();
+                                jQuery(".stock[data-id^='"+attributeId+"-"+chosenValue+"']").each(function(){
+                                    var item = jQuery(this).data('id').replace(attributeId+"-"+chosenValue+"/", '');
+                                    var item = item.split("-");
+                                    var itemAttId = item[0];
+                                    var itemValue = item[1];
+                                    var stock = jQuery(this).data('stock');
+                                    var msg = jQuery(this).data('status');
+                                    if(!stock){
+                                        var dataorg = jQuery(".super-attribute-select[data-attributeid='"+itemAttId +"'] option[value='"+itemValue+"']").data('org');
+                                        jQuery(".super-attribute-select[data-attributeid='"+itemAttId +"'] option[value='"+itemValue+"']").text(dataorg + ' ' + msg);
+                                        jQuery(".super-attribute-select[data-attributeid='"+itemAttId +"'] option[value='"+itemValue+"']").attr('stock','none');
+                                    }
+                                });
+                                for (var key in check<?php echo $firstAttId; ?>) {
+                                    if(!check<?php echo $firstAttId; ?>[key]){
+                                        var element = jQuery("#product_addtocart_product-<?php echo $_link->getId();?> .super-attribute-select[data-attributeid='<?php echo $firstAttId; ?>']  option[value='"+key+"']");
+                                        element.text(element.data('org')+ ' <?php echo $defaultOutOfStock; ?>');
+                                    }
+                                }
+                            });
+                            jQuery('#product_addtocart_product-<?php echo $_link->getId();?> .super-attribute-select').change(function(){
+                                jQuery('#product_addtocart_product-<?php echo $_link->getId();?> button').removeClass('btn-disabled disabled').prop("disabled", false);
+                                jQuery('#product_addtocart_product-<?php echo $_link->getId();?> .super-attribute-select option:selected').each(function(){
+                                    var stock = jQuery(this).attr('stock');
+                                    if (stock == 'none'){
+                                        jQuery('#product_addtocart_product-<?php echo $_link->getId();?> button').addClass('btn-disabled disabled').prop("disabled", true);
+                                    }
+                                });
+                                for (var key in check<?php echo $firstAttId; ?>) {
+                                    if(!check<?php echo $firstAttId; ?>[key]){
+                                        var element = jQuery("#product_addtocart_product-<?php echo $_link->getId();?> .super-attribute-select[data-attributeid='<?php echo $firstAttId; ?>']  option[value='"+key+"']");
+                                        element.text(element.data('org')+ ' <?php echo $defaultOutOfStock; ?>');
+                                    }
+                                }
+                            });
+                            //]]>
+                        </script>
+                    <?php else: ?>
+                        <script type="text/javascript">
+                            //< ![CDATA[
+                            var customForm = new VarienForm('product_addtocart_product-<?php echo $_link->getId(); ?>');
+                            jQuery('#product_addtocart_product-<?php echo $_link->getId();?> .super-attribute-select').change(function(){
+                                jQuery('#product_addtocart_product-<?php echo $_link->getId();?> button').removeClass('btn-disabled disabled').prop("disabled", false);
+                                jQuery('#product_addtocart_product-<?php echo $_link->getId();?> .super-attribute-select option:selected').each(function(){
+                                    var stock = jQuery(this).attr('stock');
+                                    if (stock == 'none'){
+                                        jQuery('#product_addtocart_product-<?php echo $_link->getId();?> button').addClass('btn-disabled disabled').prop("disabled", true);
+                                    }
+                                });
+                            });
+                            //]]>
+                        </script>
                     <?php endif; ?>
+                <br />
+                <?php endif; ?>
                 <br />
                 <div style="margin: 10px 0 10px 0">
                     <?php echo $this->__('Qty:') ?> <input type="text" class="input-text qty" pattern="\d*(\.\d+)?" name="qty" maxlength="12" value="1">
                 </div>
-                <input type="submit" value="<?php echo $this->__('Add to Cart'); ?>" />
-                </form>
+                <button type="submit" class="btn button btn-cart"><span><span><?php echo $this->__('Add To Cart'); ?></span></span></button>
+            </form>
             <?php echo $this->getPriceHtml($_link, true, '-upsell') ?>
             <?php echo $this->getReviewsSummaryHtml($_link) ?>
         </li>
