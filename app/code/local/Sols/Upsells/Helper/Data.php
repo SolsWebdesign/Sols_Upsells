@@ -30,7 +30,7 @@ class Sols_Upsells_Helper_Data extends Mage_Core_Helper_Abstract
         // we starten met de out of stock text:
         $outOfStock  = '(niet op voorraad)';
         // gebruik je nu Amasty dan uncomment de regel hier onder
-        $outOfStock  = Mage::helper('amstockstatus')->getCustomStockStatusText($product);
+        //$outOfStock  = Mage::helper('amstockstatus')->getCustomStockStatusText($product);
 
         // hier haalt hij de attributes op voor de configurable
         $attributes  = Mage::getModel('catalog/product_type_configurable')->getConfigurableAttributes($product);
